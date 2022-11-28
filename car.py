@@ -20,3 +20,34 @@ class Car:
         self.car = pygame.image.load(self.car_color['link'])
         self.car = pygame.transform.scale(self.car, self.size)
         self.car_rect = self.car.get_rect()
+
+    def move(self, direction, block_size, screen):
+        movement = 0
+        if direction == 'right':
+            while movement < block_size:
+                self.car_rect.right += block_size / 10
+                movement += block_size / 10
+                screen.fill((0, 0, 0))
+                screen.blit(self.car, self.car_rect)
+                pygame.display.flip()
+        elif direction == 'left':
+            while movement < block_size:
+                self.car_rect.left -= block_size / 10
+                movement += block_size / 10
+                screen.fill((0, 0, 0))
+                screen.blit(self.car, self.car_rect)
+                pygame.display.flip()
+        elif direction == 'up':
+            while movement < block_size:
+                self.car_rect.top -= block_size / 10
+                movement += block_size / 10
+                screen.fill((0, 0, 0))
+                screen.blit(self.car, self.car_rect)
+                pygame.display.flip()
+        elif direction == 'down':
+            while movement < block_size:
+                self.car_rect.bottom += block_size / 10
+                movement += block_size / 10
+                screen.fill((0, 0, 0))
+                screen.blit(self.car, self.car_rect)
+                pygame.display.flip()
