@@ -17,13 +17,10 @@ while True:
         if event.type == pygame.KEYDOWN:
             if event.key == K.K_RETURN:
                 screen.fill((0, 0, 0))
-                try:
-                    print('---------- New ---------')
-                    board.create_spaces()
-                    board.create_cars()
-                    board.cars_random_placement(screen)
-                except RecursionError:
-                    break
+                print('---------- New ---------')
+                board.create_spaces()
+                board.create_cars()
+                board.cars_random_placement(screen)
 
     pygame.display.flip()
 

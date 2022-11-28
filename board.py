@@ -31,7 +31,7 @@ class Board:
 
     def create_cars(self):
         self.cars = []
-        twos = self.level * 2
+        twos = self.level * 3
         threes = self.level
         self.cars.append(Car(2, self.block_size, car_colors[0], True))
         for i in range(1, twos+1):
@@ -51,26 +51,23 @@ class Board:
             return False
         index = self.full_grid.index(placement)
         car.car_rect.topleft = placement
+        new_free_places = self.free_places
+        used_places = []
         if car.horizontal:
-            try:
-                used_places = [self.full_grid[index + self.rows_columns_count * i] for i in range(0, car.length + 1)]
-                new_free_places = [place for place in self.free_places if place not in used_places]
-            except IndexError:
-                print('oops')
-                new_free_places = self.free_places
-                new_free_places.remove(placement)
-            finally:
-                self.free_places = new_free_places
+            for i in range(0, car.length):
+                i = index + self.rows_columns_count * i
+                if i <= len(self.full_grid)-1:
+                    used_places.append(self.full_grid[i])
+                else:
+                    break
         elif not car.horizontal:
-            try:
-                used_places = [self.full_grid[index + i] for i in range(0, car.length + 1)]
-                new_free_places = [place for place in self.free_places if place not in used_places]
-            except IndexError:
-                print('oops')
-                new_places = self.free_places
-                new_places.remove(placement)
-            finally:
-                self.free_places = new_free_places
+            for i in range(0, car.length):
+                i = index + 1
+                if i <= len(self.full_grid)-1:
+                    used_places.append(self.full_grid[i])
+                else:
+                    break
+        self.free_places = new_free_places
         return True
 
     def pos_check(self, car):
@@ -96,15 +93,14 @@ class Board:
         for car in self.cars[1:]:
             attempt_count = 0
             while True:
-                good = self.place_car_pos(car)
+                positioned = self.place_car_pos(car)
                 # next line makes a car_rects list without current car so that check dosent check car to itself
                 self.car_rects = [car_u.car_rect for car_u in self.cars if car_u != car]
-                if good and self.pos_check(car):
+                if positioned and self.pos_check(car):
                     self.car_rects.append(car.car_rect)
                     screen.blit(car.car, car.car_rect)
                     print(attempt_count)
                     break
                 attempt_count += 1
                 if attempt_count > 100:
-                    attempt_count = 0
                     restart()
