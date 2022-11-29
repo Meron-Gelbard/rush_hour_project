@@ -20,7 +20,6 @@ while True:
                 board.create_cars()
                 board.cars_random_placement(screen)
         if event.type == pygame.MOUSEBUTTONDOWN:
-            print(pygame.mouse.get_pos())
             board.check_mouse_click(pygame.mouse.get_pos(), screen)
 
     pygame.display.flip()

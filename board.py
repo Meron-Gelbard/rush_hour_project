@@ -2,7 +2,6 @@ import pygame
 import random
 import math
 from car import Car
-from threading import Thread
 
 car_colors = ['red', 'blue', 'cyan', 'pink', 'orange', 'green']
 
@@ -58,32 +57,8 @@ class Board:
         self.car_rects = [car.car_rect for car in self.cars]
 
     def place_car_pos(self, car):
-        try:
-            placement = random.choice(self.free_places)
-        except IndexError:
-            return False
+        placement = random.choice(self.full_grid)
         car.car_rect.topleft = placement
-        index = self.full_grid.index(placement)
-        new_free_places = []
-        used_places = []
-        if car.horizontal:
-            for i in range(0, car.length):
-                i = index + self.rows_columns_count * i
-                if i <= len(self.full_grid)-1:
-                    used_places.append(self.full_grid[i])
-                else:
-                    break
-            new_free_places = [place for place in self.free_places if place not in used_places]
-        else:
-            for i in range(0, car.length):
-                i = index + i
-                if i <= len(self.full_grid)-1:
-                    used_places.append(self.full_grid[i])
-                else:
-                    break
-            new_free_places = [place for place in self.free_places if place not in used_places]
-        self.free_places = new_free_places
-        return True
 
     def pos_check(self, car):
         if car.car_rect.bottom > self.size:
@@ -97,6 +72,28 @@ class Board:
         else:
             return True
 
+    def update_free_places(self):
+        used_places = []
+        self.car_rects = [car.car_rect for car in self.cars]
+        for car in self.cars:
+            index = self.full_grid.index(car.car_rect.topleft)
+            if car.horizontal:
+                for i in range(0, car.length):
+                    i = index + self.rows_columns_count * i
+                    if i <= len(self.full_grid)-1:
+                        used_places.append(self.full_grid[i])
+                    else:
+                        break
+            elif not car.horizontal:
+                for i in range(0, car.length):
+                    i = index + i
+                    if i <= len(self.full_grid)-1:
+                        used_places.append(self.full_grid[i])
+                    else:
+                        break
+            new_free_places = [place for place in self.full_grid if place not in used_places]
+            self.free_places = new_free_places
+
     def cars_random_placement(self, screen):
         def restart():
             screen.fill((0, 0, 0))
@@ -109,10 +106,10 @@ class Board:
         for car in self.cars[1:]:
             attempt_count = 0
             while True:
-                positioned = self.place_car_pos(car)
+                self.place_car_pos(car)
                 # next line makes a car_rects list without current car so that check dosent check car to itself
                 self.car_rects = [car_u.car_rect for car_u in self.cars if car_u != car]
-                if positioned and self.pos_check(car):
+                if self.pos_check(car):
                     self.car_rects.append(car.car_rect)
                     screen.blit(car.car, car.car_rect)
                     break
@@ -121,6 +118,7 @@ class Board:
                     attempt_count = 0
                     print('oops')
                     restart()
+        self.update_free_places()
 
     def blit_cars(self, screen):
         for car in self.cars:
@@ -130,9 +128,16 @@ class Board:
         for car in self.cars:
             if car.car_rect.collidepoint(pos):
                 if not car.horizontal:
-                    if pos[1] < car.car_rect.center[1] and (car.car_rect.topleft[0], car.car_rect.topleft[1] - car.width) in self.free_places:
-                        Thread(target=car.move('up', car.width, screen)).start()
-                        self.blit_cars(screen)
-                        self.car_rects = [car.car_rect for car in self.cars]
-                        used_places = [car_rect.topleft for car_rect in self.car_rects]
-                        self.free_places = [place for place in self.full_grid if place not in used_places]
+                    if pos[1] < car.car_rect.center[1]:
+                        car.move('up', self.full_grid, self.free_places, self.rows_columns_count)
+                    elif pos[1] > car.car_rect.center[1]:
+                        car.move('down', self.full_grid, self.free_places, self.rows_columns_count)
+                elif car.horizontal:
+                    if pos[0] < car.car_rect.center[0]:
+                        car.move('left', self.full_grid, self.free_places, self.rows_columns_count)
+                    elif pos[0] > car.car_rect.center[0]:
+                        car.move('right', self.full_grid, self.free_places, self.rows_columns_count)
+                screen.fill((0, 0, 0))
+                self.car_rects = [car.car_rect for car in self.cars]
+                self.blit_cars(screen)
+                self.update_free_places()
