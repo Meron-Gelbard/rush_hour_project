@@ -27,18 +27,18 @@ class Car:
         if direction == 'right':
             if (self.car_rect.topleft[0] + self.width * self.length, self.car_rect.topleft[1]) in free_places:
                 self.car_rect.topleft = grid[last_index + rows_columns]
-            return self.car_rect.topleft
+                return True
         elif direction == 'left':
             if (self.car_rect.topleft[0] - self.width, self.car_rect.topleft[1]) in free_places:
                 self.car_rect.topleft = grid[last_index - rows_columns]
-            return self.car_rect.topleft
+                return True
         elif direction == 'up':
             if (self.car_rect.topleft[0], self.car_rect.topleft[1] - self.width) in free_places:
                 self.car_rect.topleft = grid[last_index - 1]
-            return self.car_rect.topleft
+                return True
         elif direction == 'down':
             if (self.car_rect.topleft[0], self.car_rect.topleft[1] + self.width * self.length) in free_places:
                 self.car_rect.topleft = grid[last_index + 1]
-            return self.car_rect.topleft
+                return True
 
 

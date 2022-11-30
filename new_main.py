@@ -2,12 +2,11 @@ import pygame
 import sys
 import pygame.locals as K
 from board import Board
-
 pygame.init()
 
 screen_size = 800
 screen = pygame.display.set_mode((screen_size, screen_size))
-board = Board(size=screen_size, level=2, rows_columns=6)
+board = Board(size=screen_size, level=4, rows_columns=6)
 
 while True:
     for event in pygame.event.get():
@@ -15,13 +14,31 @@ while True:
             sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key == K.K_RETURN:
-                screen.fill((0, 0, 0))
-                board.create_spaces()
-                board.create_cars()
-                board.create_random_level(screen)
-            if event.key == K.K_s:
-                solution_route = board.level.level_solver()
-                print('route:\n', solution_route)
+                solvable = False
+                while not solvable:
+                    board.create_spaces()
+                    board.create_cars()
+                    board.create_random_level(screen)
+                    solution_route = board.level.level_solver()
+                    if board.level.possible:
+                        solvable = True
+                        print('found solvable map!')
+                        screen.fill((0, 0, 0))
+                        board.blit_cars(screen)
+                        print(len(solution_route))
+                        for move in solution_route:
+                            print(move)
+                    else:
+                        print('unsolvable...moving on')
+            if event.key == K.K_p:
+                for move in solution_route:
+                    for i in range(len(board.cars)):
+                        board.cars[i].car_rect.topleft = move[i]
+                    screen.fill((0, 0, 0))
+                    board.blit_cars(screen)
+                    pygame.display.flip()
+                    pygame.time.wait(1000)
+
         if event.type == pygame.MOUSEBUTTONDOWN:
             board.check_mouse_click(pygame.mouse.get_pos(), screen)
 
