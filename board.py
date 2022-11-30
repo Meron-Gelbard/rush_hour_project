@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 from car import Car
+from level import Level
 
 car_colors = ['red', 'blue', 'cyan', 'pink', 'orange', 'green']
 
@@ -18,6 +19,7 @@ class Board:
         self.red_car_xys = []
         self.density_factor = 0.3 + (0.1 * level)
         self.coverage = 0
+        self.level = None
 
     def create_spaces(self):
         self.free_places = []
@@ -31,7 +33,6 @@ class Board:
                             if place[1] == self.full_grid[self.rows_columns_count // 2][1]
                             and place[0] < self.size - self.block_size*3]
         self.coverage = math.floor(self.density_factor * len(self.full_grid))
-
 
     def create_cars(self):
         self.cars = []
@@ -94,12 +95,12 @@ class Board:
             new_free_places = [place for place in self.full_grid if place not in used_places]
             self.free_places = new_free_places
 
-    def cars_random_placement(self, screen):
+    def create_random_level(self, screen):
         def restart():
             screen.fill((0, 0, 0))
             self.create_spaces()
             self.create_cars()
-            self.cars_random_placement(screen)
+            self.create_random_level(screen)
         self.cars[0].car_rect.topleft = random.choice(self.red_car_xys)
         screen.blit(self.cars[0].car, self.cars[0].car_rect)
         self.cars[1:].sort(key=lambda x: int(x.length), reverse=True)
@@ -111,14 +112,15 @@ class Board:
                 self.car_rects = [car_u.car_rect for car_u in self.cars if car_u != car]
                 if self.pos_check(car):
                     self.car_rects.append(car.car_rect)
-                    screen.blit(car.car, car.car_rect)
                     break
                 attempt_count += 1
                 if attempt_count > 300:
                     attempt_count = 0
                     print('oops')
                     restart()
+        self.blit_cars(screen)
         self.update_free_places()
+        self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars, screen_size=self.size)
 
     def blit_cars(self, screen):
         for car in self.cars:
@@ -141,3 +143,4 @@ class Board:
                 self.car_rects = [car.car_rect for car in self.cars]
                 self.blit_cars(screen)
                 self.update_free_places()
+

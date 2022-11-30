@@ -20,19 +20,25 @@ class Car:
         self.car = pygame.image.load(self.car_color['link'])
         self.car = pygame.transform.scale(self.car, self.size)
         self.car_rect = self.car.get_rect()
+        self.is_out = False
 
     def move(self, direction, grid, free_places, rows_columns):
         last_index = grid.index(self.car_rect.topleft)
-        movement = 0
         if direction == 'right':
             if (self.car_rect.topleft[0] + self.width * self.length, self.car_rect.topleft[1]) in free_places:
                 self.car_rect.topleft = grid[last_index + rows_columns]
+            return self.car_rect.topleft
         elif direction == 'left':
             if (self.car_rect.topleft[0] - self.width, self.car_rect.topleft[1]) in free_places:
                 self.car_rect.topleft = grid[last_index - rows_columns]
+            return self.car_rect.topleft
         elif direction == 'up':
             if (self.car_rect.topleft[0], self.car_rect.topleft[1] - self.width) in free_places:
                 self.car_rect.topleft = grid[last_index - 1]
+            return self.car_rect.topleft
         elif direction == 'down':
             if (self.car_rect.topleft[0], self.car_rect.topleft[1] + self.width * self.length) in free_places:
                 self.car_rect.topleft = grid[last_index + 1]
+            return self.car_rect.topleft
+
+

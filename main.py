@@ -106,23 +106,3 @@ while True:
 
 
 
-
-
-
-
-# position_map = [car.position for car in cars]
-# create surfaces from positions map
-# map_history = [position_map, position_map, position_map, position_map]
-
-# def car_movment(postion_map):
-#     for car in cars:
-#         if car.free:
-#             # if position map not in history:
-#                 # move car to free spot
-#                 # if red car is out - finish game!
-#                 # if not:
-#                     # new position_map
-#                     # save position map to history
-#                     # call self with new position map
-#             # but if position map is in history:
-#             #     continue
