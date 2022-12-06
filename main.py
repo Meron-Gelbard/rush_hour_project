@@ -1,93 +1,15 @@
 import pygame
 import sys
-import random
 import pygame.locals as K
-
-car_colors = ['red', 'blue', 'cyan', 'pink', 'orange', 'green']
+from board import Board
 
 pygame.init()
-class Car:
-    def __init__(self, length, img_color):
-        self.horizontal = random.choice([True, False])
-        self.length = length
-        if self.horizontal:
-            self.size = (130 * length, 130)
-        else:
-            self.size = (130, 130 * length)
-        img_color = f"img/{img_color}_brick.png"
-        self.car = pygame.image.load(img_color)
-        self.car = pygame.transform.scale(self.car, self.size)
-        self.car_rect = self.car.get_rect()
 
-
-def place_car_pos(car, places):
-    try:
-        placement = random.choice(places)
-    except IndexError:
-        return None
-    except TypeError:
-        return None
-    car.car_rect.topleft = placement
-    if car.horizontal:
-        index = places.index(placement)
-        try:
-            used_places = [places[index + 6 * i] for i in range(1, car.length + 1)]
-            places = [place for place in places if place not in used_places]
-            places.remove(placement)
-            return places
-        except IndexError:
-            places.remove(placement)
-            return places
-    elif not car.horizontal:
-        index = places.index(placement)
-        try:
-            used_places = [places[index+i] for i in range(1, car.length + 1)]
-            places = [place for place in places if place not in used_places]
-            places.remove(placement)
-            return places
-        except IndexError:
-            places.remove(placement)
-            return places
-
-def randomize_cars(screen_size):
-    def check(this_car, car_rects):
-        if this_car.car_rect.bottom > screen_size:
-            return False
-        elif this_car.car_rect.right > screen_size:
-            return False
-        elif this_car.car_rect.collidelist(car_rects) != -1:
-            return False
-        else:
-            return True
-
-    cars = [Car(2, random.choice(car_colors)) for _ in range(4)]
-    for _ in range(2):
-        cars.append(Car(3, random.choice(car_colors)))
-    cars.sort(key=lambda x: int(x.length), reverse=True)
-
-    car_rects = [car.car_rect for car in cars]
-
-    values = [i for i in range(-130, screen_size+1, 130)]
-    places = []
-
-    for x in range(1, 7):
-        for y in range(1, 7):
-            places.append((values[x], values[y]))
-
-    for car in cars:
-        while True:
-            places = place_car_pos(car, places)
-            if places == None or len(places) < 2:
-                screen.fill((0, 0, 0))
-                randomize_cars(screen_size)
-            car_rects = [car_u.car_rect for car_u in cars if car_u != car]
-            passed = check(car, car_rects)
-            if passed:
-                screen.blit(car.car, car.car_rect)
-                break
-
-screen_size = 780
+screen_size = 800
 screen = pygame.display.set_mode((screen_size, screen_size))
+board = Board(size=screen_size, level=3, rows_columns=6)
+clock = pygame.time.Clock()
+clock.tick(70)
 
 while True:
     for event in pygame.event.get():
@@ -96,13 +18,24 @@ while True:
         if event.type == pygame.KEYDOWN:
             if event.key == K.K_RETURN:
                 screen.fill((0, 0, 0))
-                try:
-                    randomize_cars(screen_size)
-                except RecursionError:
-                    break
+                board.create_spaces()
+                board.create_cars()
+                board.create_random_level(screen)
+                board.blit_cars(screen)
+                print(f"solved in {board.level.moves_2_exit} moves.")
+            if event.key == K.K_p:
+                board.solution_player(screen)
+
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            board.check_mouse_click(pygame.mouse.get_pos(), screen)
 
     pygame.display.flip()
 
 
-
+# TODO: implement yield function in recurssion functions. good for restarting function without variables reset!! (????)
+# TODO: implement map building by level argument. calculate level by number of moves required.
+# TODO: try to create level creation log for future saving of generated maps.
+# TODO: try implementing recurssion error handling instead of attempt counts for production of more complex maps.
+# TODO: improve GUI: "please wait" messages, grid background, exit sign, board boarder, level request input, undo move button,
+# move counter display, level reset button. solution player button, work on car images.
 
