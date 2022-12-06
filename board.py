@@ -58,21 +58,22 @@ class Board:
         self.car_rects = [car.car_rect for car in self.cars]
 
     def place_car_pos(self, car):
-        placement = random.choice(self.full_grid)
+        passed = False
+        placement = random.choice(self.free_places)
         car.car_rect.topleft = placement
         # next line makes a car_rects list without current car so that the check dosent check car to itself
         self.car_rects = [car_u.car_rect for car_u in self.cars if car_u != car]
         if car.car_rect.bottom > self.size:
-            self.place_car_pos(car)
+            passed = False
         elif car.car_rect.right > self.size:
-            self.place_car_pos(car)
+            passed = False
         elif car.car_rect.collidelist(self.car_rects) != -1:
-            self.place_car_pos(car)
+            passed = False
         elif car.car_rect.topleft[1] == self.cars[0].car_rect.topleft[1] and car.horizontal:
-            self.place_car_pos(car)
+            passed = False
         else:
-            self.car_rects = [car_u.car_rect for car_u in self.cars]
-            return True
+            passed = True
+        return passed
 
     def update_free_places(self):
         used_places = []
@@ -103,20 +104,20 @@ class Board:
             self.create_cars()
             self.create_random_level(screen)
         self.cars[0].car_rect.topleft = random.choice(self.red_car_xys)
-        self.cars[1:].sort(key=lambda x: int(x.length), reverse=True)
         for car in self.cars[1:]:
             attempt_count = 0
+            self.update_free_places()
             while not self.place_car_pos(car):
                 attempt_count += 1
-                if attempt_count > 600:
+                if attempt_count > 100000:
                     attempt_count = 0
                     restart()
-            # if car.horizontal:
-            #     if car.car_rect.bottom == self.cars[0].car_rect.bottom or car.car_rect.top + self.block_size == self.cars[0].car_rect.bottom:
-            #         self.cars.insert(1, car)
-        self.blit_cars(screen)
         self.update_free_places()
+        self.blit_cars(screen)
         self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars, screen_size=self.size)
+        self.level.level_solver()
+        if not self.level.solvable:
+            restart()
 
     def blit_cars(self, screen):
         for car in self.cars:
@@ -139,4 +140,13 @@ class Board:
                 self.car_rects = [car.car_rect for car in self.cars]
                 self.blit_cars(screen)
                 self.update_free_places()
+
+    def solution_player(self, screen):
+        for move in self.level.route:
+            for i in range(len(self.cars)):
+                self.cars[i].car_rect.topleft = move[i]
+            screen.fill((0, 0, 0))
+            self.blit_cars(screen)
+            pygame.display.flip()
+            pygame.time.wait(1000)
 
