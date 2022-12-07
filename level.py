@@ -1,3 +1,5 @@
+from _collections import deque
+import json
 
 class Level:
     def __init__(self, grid, rows_columns, first_position_cars, screen_size):
@@ -10,6 +12,35 @@ class Level:
         self.red_car_width = first_position_cars[0].width
         self.moves_2_exit = 0
         self.route = None
+
+    def save_level(self):
+        cars = []
+        for car in self.moving_cars:
+            cars.append(
+                {
+                    "length": car.length,
+                    "block_width": car.width,
+                    "color": car.color,
+                    "horizontal": car.horizontal,
+                    "topleft_xy": car.car_rect.topleft
+                }
+            )
+
+        level_save_params = {
+            "moves_2_exit": self.moves_2_exit,
+            "grid": self.grid,
+            "rows_columns": self.rows_columns,
+            "cars": cars,
+            "screen_size": self.board_edge
+        }
+
+        with open("solved_levels.json", "r") as levels_data:
+            saved_levels = json.load(levels_data)
+            saved_levels.append(level_save_params)
+            levels_data.close()
+        with open("solved_levels.json", "w") as file:
+            json.dump(saved_levels, file)
+            file.close()
 
     def get_free_places(self, cars):
         used_places = []
@@ -76,37 +107,32 @@ class Level:
                     return False
             return True
 
-        queue = [self.first_position]
+        moves_queue = deque([self.first_position])
         moves_dictionary = {}
         visited = []
         end = None
-        while len(queue) > 0:
-            for current_pos in queue:
-                remaining = len(queue)
-                queue.remove(current_pos)
-                if current_pos not in visited:
-                    visited.append(current_pos)
-                    for i in range(0, len(self.moving_cars)):
-                        self.moving_cars[i].car_rect.topleft = current_pos[i]
-                    if red_path_cleared():
-                        self.moving_cars[0].car_rect.left += self.moving_cars[0].width
-                        next_in_red_path = [car.car_rect.topleft for car in self.moving_cars]
-                        moves_dictionary[visited.index(current_pos)] = [next_in_red_path]
-                        queue.append(next_in_red_path)
-                        # queue = [next_in_red_path]
-                        if self.moving_cars[0].car_rect.right >= self.board_edge - 10:
-                            end = next_in_red_path
-                            self.solvable = True
-                            queue = []
-                            break
-                    else:
-                        possible_moves = self.check_possible_moves(self.moving_cars)
-                        moves_dictionary[visited.index(current_pos)] = [move for move in possible_moves]
-                        for move in possible_moves:
-                            if move not in queue and move not in visited:
-                                queue.append(move)
-                        if len(queue) < remaining:
-                            return None
+        while len(moves_queue) > 0:
+            current_pos = moves_queue.popleft()
+            if current_pos not in visited:
+                visited.append(current_pos)
+                for i in range(0, len(self.moving_cars)):
+                    self.moving_cars[i].car_rect.topleft = current_pos[i]
+                if red_path_cleared():
+                    self.moving_cars[0].car_rect.left += self.moving_cars[0].width
+                    next_in_red_path = [car.car_rect.topleft for car in self.moving_cars]
+                    moves_dictionary[visited.index(current_pos)] = [next_in_red_path]
+                    moves_queue.clear()
+                    moves_queue.append(next_in_red_path)
+                    if self.moving_cars[0].car_rect.right >= self.board_edge - 10:
+                        end = next_in_red_path
+                        self.solvable = True
+                        break
+                else:
+                    possible_moves = self.check_possible_moves(self.moving_cars)
+                    moves_dictionary[visited.index(current_pos)] = [move for move in possible_moves]
+                    for move in possible_moves:
+                        if move not in moves_queue and move not in visited:
+                            moves_queue.append(move)
 
         if self.solvable:
             reversed_dict = {}
@@ -129,11 +155,16 @@ class Level:
             self.route.reverse()
             self.moves_2_exit = len(self.route) - 1
 
-
-# TODO:  If removing any piece has no effect on the solution, then the puzzle is not minimal and is discarded.
-#  -- check in visited states if a car wasn't ever moved. if so, discard this game map as its not minimal!!
-
-
-
+    def level_is_minimal(self):
+        # If a car in a given map hasn't moved throughout the solution route this map is not Minimal!
+        # this function checks if a given car has the same topleft coordinates throughout the solution route.
+        for car in range(1, len(self.first_position)):
+            car_moved = False
+            for pos in self.route:
+                if self.first_position[car] != pos[car]:
+                    car_moved = True
+            if not car_moved:
+                return False
+        return True
 
 

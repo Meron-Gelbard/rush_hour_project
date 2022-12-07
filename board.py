@@ -3,6 +3,7 @@ import random
 import math
 from car import Car
 from level import Level
+import json
 
 car_colors = ['red', 'blue', 'cyan', 'pink', 'orange', 'green']
 
@@ -58,7 +59,6 @@ class Board:
         self.car_rects = [car.car_rect for car in self.cars]
 
     def place_car_pos(self, car):
-        passed = False
         placement = random.choice(self.free_places)
         car.car_rect.topleft = placement
         # next line makes a car_rects list without current car so that the check dosent check car to itself
@@ -98,26 +98,49 @@ class Board:
             self.free_places = new_free_places
 
     def create_random_level(self, screen):
-        def restart():
-            screen.fill((0, 0, 0))
-            self.create_spaces()
-            self.create_cars()
-            self.create_random_level(screen)
+        screen.fill((0, 0, 0))
+        pygame.display.flip()
+        self.create_spaces()
+        self.create_cars()
         self.cars[0].car_rect.topleft = random.choice(self.red_car_xys)
         for car in self.cars[1:]:
             attempt_count = 0
             self.update_free_places()
             while not self.place_car_pos(car):
                 attempt_count += 1
-                if attempt_count > 100000:
+                if attempt_count > 1000000:
                     attempt_count = 0
-                    restart()
+                    print('failed to build')
+                    self.create_random_level(screen)
+                    return
         self.update_free_places()
-        self.blit_cars(screen)
-        self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars, screen_size=self.size)
-        self.level.level_solver()
+        self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars,
+                           screen_size=self.size)
+
+        level_pos_dict = {'first_position': self.level.first_position,
+                          'free_spaces': self.free_places}
+
+        with open("unsolvable.json", "r") as data:
+            unsolvables = json.load(data)
+
+        if level_pos_dict not in unsolvables:
+            self.level.level_solver()
+        else:
+            print('unsolvable level. found in json!')
+            self.create_random_level(screen)
+            return
+
         if not self.level.solvable:
-            restart()
+            unsolvables.append(level_pos_dict)
+            with open("unsolvable.json", "w") as file:
+                json.dump(unsolvables, file)
+            print('unsolvable level. added to json.')
+            self.create_random_level(screen)
+            return
+        elif self.level.solvable:
+            self.level.save_level()
+            print('solvable level saved to json!!!!!')
+            return
 
     def blit_cars(self, screen):
         for car in self.cars:
@@ -149,4 +172,5 @@ class Board:
             self.blit_cars(screen)
             pygame.display.flip()
             pygame.time.wait(1000)
+
 
