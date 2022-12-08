@@ -23,6 +23,8 @@ while True:
                 print(f"Level is minial? {board.level.level_is_minimal()}")
             if event.key == K.K_p:
                 board.solution_player(screen)
+            if event.key == K.K_l:
+                board.get_saved_level(screen)
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             board.check_mouse_click(pygame.mouse.get_pos(), screen)

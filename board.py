@@ -137,9 +137,13 @@ class Board:
             print('unsolvable level. added to json.')
             self.create_random_level(screen)
             return
-        elif self.level.solvable:
+        elif self.level.solvable and self.level.moves_2_exit > 10:
             self.level.save_level()
-            print('solvable level saved to json!!!!!')
+            print('solvable level saved to json!')
+            return
+        else:
+            print('less than 10 moves...')
+            self.create_random_level(screen)
             return
 
     def blit_cars(self, screen):
@@ -172,5 +176,38 @@ class Board:
             self.blit_cars(screen)
             pygame.display.flip()
             pygame.time.wait(1000)
+
+    def get_saved_level(self, screen):
+        screen.fill((0, 0, 0))
+        pygame.display.flip()
+        self.create_spaces()
+        self.cars = []
+        with open("solved_levels.json", "r") as levels_db:
+            levels = json.load(levels_db)
+        try:
+            random_level = random.choice(levels)
+        except Exception:
+            random_level = {}
+            print('No levels saved')
+
+        for i in range(1, len(random_level['cars'])):
+            self.cars.append(Car(block_width=random_level['cars'][i]['block_width'],
+                                 length=random_level['cars'][i]['length'],
+                                 color=random.choice(car_colors[1:]),
+                                 horizontal=random_level['cars'][i]['horizontal']))
+        self.cars.insert(0, Car(block_width=random_level['cars'][0]['block_width'],
+                                length=random_level['cars'][0]['length'],
+                                color=car_colors[0],
+                                horizontal=random_level['cars'][0]['horizontal']))
+        self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars,
+                           screen_size=self.size)
+
+        for c in range(0, len(random_level['cars'])):
+            self.cars[c].car_rect.topleft = random_level['cars'][c]['topleft_xy']
+
+        self.level.solvable = True
+        self.level.moves_2_exit = random_level['moves_2_exit']
+        self.level.route = random_level['solution_route']
+        self.blit_cars(screen)
 
 

@@ -20,7 +20,6 @@ class Level:
                 {
                     "length": car.length,
                     "block_width": car.width,
-                    "color": car.color,
                     "horizontal": car.horizontal,
                     "topleft_xy": car.car_rect.topleft
                 }
@@ -28,19 +27,20 @@ class Level:
 
         level_save_params = {
             "moves_2_exit": self.moves_2_exit,
+            "solution_route": self.route,
             "grid": self.grid,
             "rows_columns": self.rows_columns,
             "cars": cars,
-            "screen_size": self.board_edge
+            "screen_size": self.board_edge,
+            "minimal": self.level_is_minimal()
         }
 
         with open("solved_levels.json", "r") as levels_data:
             saved_levels = json.load(levels_data)
-            saved_levels.append(level_save_params)
-            levels_data.close()
+            if level_save_params not in saved_levels:
+                saved_levels.append(level_save_params)
         with open("solved_levels.json", "w") as file:
             json.dump(saved_levels, file)
-            file.close()
 
     def get_free_places(self, cars):
         used_places = []
