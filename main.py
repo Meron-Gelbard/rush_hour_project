@@ -24,10 +24,15 @@ while True:
             if event.key == K.K_p:
                 board.solution_player(screen)
             if event.key == K.K_l:
-                board.get_saved_level(screen)
+                level = board.get_random_level()
+                board.load_level(screen, level)
+            if event.key == K.K_r:
+                board.restart_level(screen)
+            if event.key == K.K_u:
+                board.undo_move(screen)
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            board.check_mouse_click(pygame.mouse.get_pos(), screen)
+            board.car_move_click(pygame.mouse.get_pos(), screen)
 
     pygame.display.flip()
 
@@ -38,6 +43,3 @@ while True:
 # TODO: try implementing recurssion error handling instead of attempt counts for production of more complex maps.??
 # TODO: improve GUI: "please wait" messages, grid background, exit sign, board boarder, level request input, undo move button,
 # move counter display, level reset button. solution player button, work on car images.
-
-# TODO: create level randomization log. if level was already checked dont try to solve again.
-#  log should be in external json file so that the prosses keeps improving in every run.!!!

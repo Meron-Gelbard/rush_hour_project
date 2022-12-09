@@ -21,6 +21,7 @@ class Board:
         self.density_factor = 0.3 + (0.1 * level)
         self.place_coverage = 0
         self.level = None
+        self.previous_moves = []
 
     def create_spaces(self):
         self.free_places = []
@@ -36,8 +37,8 @@ class Board:
         self.place_coverage = math.floor(self.density_factor * len(self.full_grid))
 
     def create_cars(self):
-        self.cars = []
         # randomly devides the grid coverage (minus red car) into cars of length 2 and 3
+        self.cars = []
         counter = self.place_coverage - 2
         car_count = []
         while counter > 0:
@@ -150,7 +151,8 @@ class Board:
         for car in self.cars:
             screen.blit(car.car, car.car_rect)
 
-    def check_mouse_click(self, pos, screen):
+    def car_move_click(self, pos, screen):
+        self.previous_moves.append([car.car_rect.topleft for car in self.cars])
         for car in self.cars:
             if car.car_rect.collidepoint(pos):
                 if not car.horizontal:
@@ -163,6 +165,8 @@ class Board:
                         car.move('left', self.full_grid, self.free_places, self.rows_columns_count)
                     elif pos[0] > car.car_rect.center[0]:
                         car.move('right', self.full_grid, self.free_places, self.rows_columns_count)
+                        if self.cars.index(car) == 0 and car.car_rect.right >= self.size - 10:
+                            print('red is out')
                 screen.fill((0, 0, 0))
                 self.car_rects = [car.car_rect for car in self.cars]
                 self.blit_cars(screen)
@@ -177,11 +181,7 @@ class Board:
             pygame.display.flip()
             pygame.time.wait(1000)
 
-    def get_saved_level(self, screen):
-        screen.fill((0, 0, 0))
-        pygame.display.flip()
-        self.create_spaces()
-        self.cars = []
+    def get_random_level(self):
         with open("solved_levels.json", "r") as levels_db:
             levels = json.load(levels_db)
         try:
@@ -189,25 +189,53 @@ class Board:
         except Exception:
             random_level = {}
             print('No levels saved')
+            return
+        return random_level
 
-        for i in range(1, len(random_level['cars'])):
-            self.cars.append(Car(block_width=random_level['cars'][i]['block_width'],
-                                 length=random_level['cars'][i]['length'],
+    def load_level(self, screen, level):
+        self.previous_moves = []
+        screen.fill((0, 0, 0))
+        pygame.display.flip()
+        self.create_spaces()
+        self.cars = []
+        for i in range(1, len(level['cars'])):
+            self.cars.append(Car(block_width=level['cars'][i]['block_width'],
+                                 length=level['cars'][i]['length'],
                                  color=random.choice(car_colors[1:]),
-                                 horizontal=random_level['cars'][i]['horizontal']))
-        self.cars.insert(0, Car(block_width=random_level['cars'][0]['block_width'],
-                                length=random_level['cars'][0]['length'],
+                                 horizontal=level['cars'][i]['horizontal']))
+        self.cars.insert(0, Car(block_width=level['cars'][0]['block_width'],
+                                length=level['cars'][0]['length'],
                                 color=car_colors[0],
-                                horizontal=random_level['cars'][0]['horizontal']))
+                                horizontal=level['cars'][0]['horizontal']))
         self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars,
                            screen_size=self.size)
 
-        for c in range(0, len(random_level['cars'])):
-            self.cars[c].car_rect.topleft = random_level['cars'][c]['topleft_xy']
+        for c in range(0, len(level['cars'])):
+            self.cars[c].car_rect.topleft = level['cars'][c]['topleft_xy']
 
         self.level.solvable = True
-        self.level.moves_2_exit = random_level['moves_2_exit']
-        self.level.route = random_level['solution_route']
+        self.level.moves_2_exit = level['moves_2_exit']
+        self.level.route = level['solution_route']
         self.blit_cars(screen)
+
+    def restart_level(self, screen):
+        self.previous_moves = []
+        first_position = self.level.route[0]
+        for i in range(len(self.cars)):
+            self.cars[i].car_rect.topleft = first_position[i]
+        screen.fill((0, 0, 0))
+        self.blit_cars(screen)
+
+    def undo_move(self, screen):
+        try:
+            last_position = self.previous_moves.pop(-1)
+            for i in range(len(self.cars)):
+                self.cars[i].car_rect.topleft = last_position[i]
+            screen.fill((0, 0, 0))
+            self.blit_cars(screen)
+        except IndexError:
+            return
+
+
 
 

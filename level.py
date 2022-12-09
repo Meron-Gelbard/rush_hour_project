@@ -156,8 +156,6 @@ class Level:
             self.moves_2_exit = len(self.route) - 1
 
     def level_is_minimal(self):
-        # If a car in a given map hasn't moved throughout the solution route this map is not Minimal!
-        # this function checks if a given car has the same topleft coordinates throughout the solution route.
         for car in range(1, len(self.first_position)):
             car_moved = False
             for pos in self.route:
