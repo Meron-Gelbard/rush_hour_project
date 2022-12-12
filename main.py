@@ -3,7 +3,6 @@ import sys
 import pygame.locals as K
 from board import Board
 from gui import RushHourGui
-from threading import Thread
 
 pygame.init()
 
@@ -13,8 +12,6 @@ screen.get_rect().topleft = (100, 100)
 rush_hour_gui = RushHourGui(screen_size)
 board = Board(size=screen_size, level=4, rows_columns=6, gui=rush_hour_gui)
 clock = pygame.time.Clock()
-
-clock.tick(100)
 
 while True:
     for event in pygame.event.get():
@@ -34,14 +31,24 @@ while True:
             if event.key == K.K_u:
                 board.undo_move(screen)
         if event.type == pygame.MOUSEBUTTONDOWN:
+            button_press = False
             for btn in rush_hour_gui.btns:
                 if btn[3].collidepoint(pygame.mouse.get_pos()):
+                    rush_hour_gui.btn_press(btn)
                     board.btn_funcs[btn[2]](screen)
-            rush_hour_gui.blit_btns(screen)
-            board.car_move_click(pygame.mouse.get_pos())
+                    button_press = True
+            if not button_press:
+                board.car_move_click(pygame.mouse.get_pos())
+        if event.type == pygame.MOUSEBUTTONUP:
+            for btn in rush_hour_gui.btns:
+                rush_hour_gui.btn_release(btn)
     screen.fill((0, 0, 0))
     board.blit_cars(screen)
     rush_hour_gui.blit_btns(screen)
+    try:
+        rush_hour_gui.blit_status(moves_count=len(board.previous_moves), min_moves=len(board.level.route), screen=screen)
+    except AttributeError:
+        pass
     pygame.display.flip()
 
 

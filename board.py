@@ -6,6 +6,7 @@ from car import Car
 from level import Level
 import json
 import time
+from threading import Thread
 
 car_colors = ['red', 'blue', 'cyan', 'pink', 'orange', 'green']
 
@@ -109,7 +110,6 @@ class Board:
             self.free_places = new_free_places
 
     def create_random_level(self, screen):
-        self.previous_moves = []
         screen.fill((0, 0, 0))
         pygame.display.flip()
         self.create_spaces()
@@ -151,6 +151,7 @@ class Board:
             return
         elif self.level.solvable and self.level.moves_2_exit > 10:
             self.level.save_level()
+            self.previous_moves = [self.level.route[0]]
             print('solvable level saved to json!')
             return
         else:
@@ -163,36 +164,50 @@ class Board:
             screen.blit(car.car, car.car_rect)
 
     def car_move_click(self, pos):
-        self.previous_moves.append([car.car_rect.topleft for car in self.cars])
+        previous_move = [car.car_rect.topleft for car in self.cars]
+        moved = False
         for car in self.cars:
             if car.car_rect.collidepoint(pos):
                 if not car.horizontal:
                     if pos[1] < car.car_rect.center[1]:
-                        car.move('up', self.full_grid, self.free_places, self.rows_columns_count)
+                        moved = car.move('up', self.full_grid, self.free_places, self.rows_columns_count)
                     elif pos[1] > car.car_rect.center[1]:
-                        car.move('down', self.full_grid, self.free_places, self.rows_columns_count)
+                        moved = car.move('down', self.full_grid, self.free_places, self.rows_columns_count)
                 elif car.horizontal:
                     if pos[0] < car.car_rect.center[0]:
-                        car.move('left', self.full_grid, self.free_places, self.rows_columns_count)
+                        moved = car.move('left', self.full_grid, self.free_places, self.rows_columns_count)
                     elif pos[0] > car.car_rect.center[0]:
-                        car.move('right', self.full_grid, self.free_places, self.rows_columns_count)
+                        moved = car.move('right', self.full_grid, self.free_places, self.rows_columns_count)
                         if self.cars.index(car) == 0 and car.car_rect.right >= self.size - 10:
                             print('red is out')
-                self.car_rects = [car.car_rect for car in self.cars]
-                self.update_free_places()
+        if moved:
+            self.previous_moves.append(previous_move)
+            print(len(self.previous_moves))
+            self.car_rects = [car.car_rect for car in self.cars]
+            self.update_free_places()
 
     def solution_player(self, screen):
-        for move in self.level.route:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
+        try:
+            for move in self.level.route:
+                for event in pygame.event.get():
+                    if event.type == pygame.MOUSEBUTTONUP:
+                        self.gui.btn_release(self.gui.btns[2])
+                    if event.type == pygame.QUIT:
+                        sys.exit()
+                for i in range(len(self.cars)):
+                    self.cars[i].car_rect.topleft = move[i]
+                screen.fill((0, 0, 0))
+                self.blit_cars(screen)
+                self.gui.blit_btns(screen)
+                self.gui.blit_status(self.level.route.index(move) + 1, len(self.level.route), screen)
+                pygame.display.flip()
+                time.sleep(1)
+            time.sleep(2)
             for i in range(len(self.cars)):
-                self.cars[i].car_rect.topleft = move[i]
-            screen.fill((0, 0, 0))
-            self.blit_cars(screen)
-            self.gui.blit_btns(screen)
-            pygame.display.flip()
-            time.sleep(1)
+                self.cars[i].car_rect.topleft = self.level.route[0][i]
+        except AttributeError:
+            pass
+
 
     def get_random_level(self):
         with open("solved_levels.json", "r") as levels_db:
@@ -207,8 +222,6 @@ class Board:
 
     def load_level(self, screen):
         level = self.get_random_level()
-        self.previous_moves = []
-        pygame.display.flip()
         self.create_spaces()
         self.cars = []
         for i in range(1, len(level['cars'])):
@@ -229,21 +242,24 @@ class Board:
         self.level.solvable = True
         self.level.moves_2_exit = level['moves_2_exit']
         self.level.route = level['solution_route']
+        self.previous_moves = [self.level.route[0]]
 
     def restart_level(self, screen):
-        self.previous_moves = []
-        first_position = self.level.route[0]
-        for i in range(len(self.cars)):
-            self.cars[i].car_rect.topleft = first_position[i]
-        # screen.fill((0, 0, 0))
+        try:
+            self.previous_moves = [self.level.route[0]]
+            for i in range(len(self.cars)):
+                self.cars[i].car_rect.topleft = self.level.route[0][i]
+            self.update_free_places()
+        except AttributeError:
+            pass
 
     def undo_move(self, screen):
-        try:
+        if len(self.previous_moves) > 1:
             last_position = self.previous_moves.pop(-1)
             for i in range(len(self.cars)):
                 self.cars[i].car_rect.topleft = last_position[i]
-        except IndexError:
-            return
+        self.update_free_places()
+        print(len(self.previous_moves))
 
 
 
