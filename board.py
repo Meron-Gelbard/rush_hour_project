@@ -13,6 +13,7 @@ car_colors = ['red', 'blue', 'cyan', 'pink', 'orange', 'green']
 class Board:
     def __init__(self, size, level, rows_columns, gui):
         self.gui = gui
+        self.listening = True
         self.size = size
         self.rows_columns_count = rows_columns
         self.block_size = size // rows_columns
@@ -33,6 +34,7 @@ class Board:
             " Undo ": self.undo_move,
             " Restart ": self.restart_level
         }
+        self.red_is_out = False
 
     def create_spaces(self):
         self.free_places = []
@@ -110,6 +112,8 @@ class Board:
             self.free_places = new_free_places
 
     def create_random_level(self, screen):
+        self.red_is_out = False
+        self.listening = True
         screen.fill((0, 0, 0))
         pygame.display.flip()
         self.create_spaces()
@@ -184,13 +188,15 @@ class Board:
                     elif pos[0] > car.car_rect.center[0]:
                         moved = car.move('right', self.full_grid, self.free_places, self.rows_columns_count)
                         if self.cars.index(car) == 0 and car.car_rect.right >= self.size - 10:
-                            print('red is out')
+                            self.red_is_out = True
         if moved:
             self.previous_moves.append(previous_move)
             self.car_rects = [car.car_rect for car in self.cars]
             self.update_free_places()
 
     def solution_player(self, screen):
+        self.listening = False
+        self.red_is_out = False
         try:
             for move in self.level.route:
                 for event in pygame.event.get():
@@ -206,12 +212,16 @@ class Board:
                 self.gui.blit_status(self.level.route.index(move) + 1, len(self.level.route), screen)
                 pygame.display.flip()
                 time.sleep(1)
-            time.sleep(2)
+            self.gui.message_text = "Red car is out!"
+            self.gui.render_message(screen)
+            pygame.display.flip()
+            time.sleep(3)
             for i in range(len(self.cars)):
                 self.cars[i].car_rect.topleft = self.level.route[0][i]
+                self.listening = True
+
         except AttributeError:
             pass
-
 
     def get_random_level(self, difficulty):
         difficulty *= 10
@@ -224,6 +234,8 @@ class Board:
         return random_level
 
     def load_level(self, screen):
+        self.listening = True
+        self.red_is_out = False
         difficulty = int(self.gui.user_input(screen, 'Please enter difficulty level (1 - 3):'))
         level = self.get_random_level(difficulty)
         if level == None:
@@ -254,6 +266,7 @@ class Board:
         self.gui.btn_release(self.gui.btns[0])
 
     def restart_level(self, screen):
+        self.red_is_out = False
         try:
             self.previous_moves = [self.level.route[0]]
             for i in range(len(self.cars)):
@@ -263,7 +276,7 @@ class Board:
             pass
 
     def undo_move(self, screen):
-        if len(self.previous_moves) > 1:
+        if self.listening and len(self.previous_moves) > 1:
             last_position = self.previous_moves.pop(-1)
             for i in range(len(self.cars)):
                 self.cars[i].car_rect.topleft = last_position[i]

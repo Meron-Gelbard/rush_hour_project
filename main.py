@@ -19,18 +19,9 @@ while True:
             sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key == K.K_RETURN:
-                while True:
-                    board.create_random_level(screen)
-                    print(f"solved in {board.level.moves_2_exit} moves.")
-                    print(f"Level is minial? {board.level.level_is_minimal()}")
-            if event.key == K.K_p:
-                board.solution_player(screen)
-            if event.key == K.K_l:
-                board.load_level(screen)
-            if event.key == K.K_r:
-                board.restart_level(screen)
-            if event.key == K.K_u:
-                board.undo_move(screen)
+                board.create_random_level(screen)
+                print(f"solved in {board.level.moves_2_exit} moves.")
+                print(f"Level is minial? {board.level.level_is_minimal()}")
         if event.type == pygame.MOUSEBUTTONDOWN:
             button_press = False
             for btn in rush_hour_gui.btns:
@@ -38,7 +29,7 @@ while True:
                     rush_hour_gui.btn_press(btn)
                     board.btn_funcs[btn[2]](screen)
                     button_press = True
-            if not button_press:
+            if board.listening and not button_press:
                 board.car_move_click(pygame.mouse.get_pos())
         if event.type == pygame.MOUSEBUTTONUP:
             for btn in rush_hour_gui.btns:
@@ -46,6 +37,10 @@ while True:
     screen.fill((0, 0, 0))
     board.blit_cars(screen)
     rush_hour_gui.blit_btns(screen)
+    if board.red_is_out:
+        board.listening = False
+        rush_hour_gui.message_text = "Red car is out! Great!"
+        rush_hour_gui.render_message(screen)
     try:
         rush_hour_gui.blit_status(moves_count=len(board.previous_moves), min_moves=len(board.level.route), screen=screen)
     except AttributeError:
