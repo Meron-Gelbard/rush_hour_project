@@ -28,7 +28,7 @@ class Board:
         self.previous_moves = []
         self.btn_funcs = {
             " Load Card ": self.load_level,
-            " Create Card ": None,
+            " Create Card ": self.create_level,
             " Play Solution ": self.solution_player,
             " Undo ": self.undo_move,
             " Restart ": self.restart_level
@@ -129,7 +129,13 @@ class Board:
         self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars,
                            screen_size=self.size)
 
-        level_pos_dict = {'first_position': self.level.first_position,
+        positioning = []
+        for i in range(len(self.level.first_position)):
+            positioning.append({'topleft': self.level.first_position[i],
+                                'car_length': self.cars[i].length,
+                               'horizontal': self.cars[i].horizontal})
+        positioning[1:].sort(key=lambda x: (x['topleft']), reverse=True)
+        level_pos_dict = {'position': positioning,
                           'free_spaces': self.free_places}
 
         with open("unsolvable.json", "r") as data:
@@ -152,7 +158,6 @@ class Board:
         elif self.level.solvable and self.level.moves_2_exit > 10:
             self.level.save_level()
             self.previous_moves = [self.level.route[0]]
-            print('solvable level saved to json!')
             return
         else:
             print('less than 10 moves...')
@@ -182,7 +187,6 @@ class Board:
                             print('red is out')
         if moved:
             self.previous_moves.append(previous_move)
-            print(len(self.previous_moves))
             self.car_rects = [car.car_rect for car in self.cars]
             self.update_free_places()
 
@@ -209,19 +213,23 @@ class Board:
             pass
 
 
-    def get_random_level(self):
+    def get_random_level(self, difficulty):
+        difficulty *= 10
         with open("solved_levels.json", "r") as levels_db:
             levels = json.load(levels_db)
         try:
-            random_level = random.choice(levels)
+            random_level = random.choice([level for level in levels if difficulty <= int(level["moves_2_exit"]) < difficulty+10])
         except Exception:
-            random_level = {}
-            print('No levels saved')
-            return
+            return None
         return random_level
 
     def load_level(self, screen):
-        level = self.get_random_level()
+        difficulty = int(self.gui.user_input(screen, 'Please enter difficulty level (1 - 3):'))
+        level = self.get_random_level(difficulty)
+        if level == None:
+            self.gui.btn_release(self.gui.btns[0])
+            self.load_level(screen)
+            return
         self.create_spaces()
         self.cars = []
         for i in range(1, len(level['cars'])):
@@ -243,6 +251,7 @@ class Board:
         self.level.moves_2_exit = level['moves_2_exit']
         self.level.route = level['solution_route']
         self.previous_moves = [self.level.route[0]]
+        self.gui.btn_release(self.gui.btns[0])
 
     def restart_level(self, screen):
         try:
@@ -259,8 +268,9 @@ class Board:
             for i in range(len(self.cars)):
                 self.cars[i].car_rect.topleft = last_position[i]
         self.update_free_places()
-        print(len(self.previous_moves))
 
+    def create_level(self, screen):
+        pass
 
 
 

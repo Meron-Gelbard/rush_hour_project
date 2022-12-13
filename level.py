@@ -24,7 +24,7 @@ class Level:
                     "topleft_xy": car.car_rect.topleft
                 }
             )
-
+        cars[1:].sort(key=lambda x: (x['topleft_xy']), reverse=True)
         level_save_params = {
             "moves_2_exit": self.moves_2_exit,
             "solution_route": self.route,
@@ -36,11 +36,19 @@ class Level:
         }
 
         with open("solved_levels.json", "r") as levels_data:
+            save = True
             saved_levels = json.load(levels_data)
-            if level_save_params not in saved_levels:
-                saved_levels.append(level_save_params)
-        with open("solved_levels.json", "w") as file:
-            json.dump(saved_levels, file)
+            for level in saved_levels:
+                if level['cars'] == level_save_params['cars']:
+                    save = False
+                    print('Level already exists in database.')
+                    break
+        if save:
+            saved_levels.append(level_save_params)
+            print('solvable level saved to json!')
+            with open("solved_levels.json", "w") as file:
+                json.dump(saved_levels, file)
+
 
     def get_free_places(self, cars):
         used_places = []

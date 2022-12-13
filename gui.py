@@ -1,5 +1,7 @@
 import pygame
 import pygame
+import pygame.locals as K
+import sys
 
 class RushHourGui:
 
@@ -14,7 +16,6 @@ class RushHourGui:
     def __init__(self, screen_size):
         shift = 12
         self.button_height = 25
-
         self.btn_info = [{"pos": (shift, shift), "text": ' Load Card '},
                     {"pos": (screen_size - shift*12, shift), "text": ' Create Card '},
                     {"pos": (screen_size - shift*13, screen_size - shift - self.button_height), "text": ' Play Solution '},
@@ -23,6 +24,9 @@ class RushHourGui:
                     ]
 
         self.btns = [self.create_btn(btn['text'], self.button_height) for btn in self.btn_info]
+        self.flash_message = pygame.font.SysFont('Ariel', 40, bold=True)
+        self.message_text = ''
+        self.user_input_txt = ''
 
     def btn_press(self, btn):
         size = btn[0].get_size()
@@ -56,3 +60,52 @@ class RushHourGui:
         screen.blit(bg, bg_xy)
         screen.blit(label, label_rect)
 
+    def render_message(self, screen):
+        label = self.flash_message.render(self.message_text, False, (255, 255, 255))
+        label_rect = label.get_rect()
+        size = screen.get_size()[0]
+        label_rect.center = (size / 2, size / 2)
+        bg_size = (label.get_width() + 20, label.get_height() + 20)
+        bg = pygame.Surface(bg_size)
+        bg.fill((0, 0, 0))
+        bg_xy = (label_rect.topleft[0] - 10, label_rect.topleft[1] - 10)
+        screen.blit(bg, bg_xy)
+        screen.blit(label, label_rect)
+
+    def render_user_input(self, screen):
+        label = self.flash_message.render(self.user_input_txt, False, (255, 255, 255))
+        label_rect = label.get_rect()
+        size = screen.get_size()[0]
+        label_rect.center = (size / 2, size / 2 + label_rect.height*1.5)
+        bg_size = (label.get_width() + 20, label.get_height() + 20)
+        bg = pygame.Surface(bg_size)
+        bg.fill((0, 0, 0))
+        bg_xy = (label_rect.topleft[0] - 10, label_rect.topleft[1] - 10)
+        screen.blit(bg, bg_xy)
+        screen.blit(label, label_rect)
+
+    def user_input(self, screen, txt):
+        self.message_text = txt
+        self.user_input_txt = ''
+        finished = False
+        while not finished:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == K.K_BACKSPACE and len(self.user_input_txt) > 0:
+                        self.user_input_txt = self.user_input_txt[:-1]
+                    elif event.key == K.K_RETURN:
+                        finished = True
+                        try:
+                            self.user_input_txt = int(self.user_input_txt)
+                            return self.user_input_txt
+                        except Exception:
+                            self.user_input_txt = '#'
+                    else:
+                        if len(self.user_input_txt) < 2:
+                            self.user_input_txt = self.user_input_txt + event.unicode
+                if event.type == pygame.QUIT:
+                    sys.exit()
+            screen.fill((0, 0, 0))
+            self.render_message(screen)
+            self.render_user_input(screen)
+            pygame.display.flip()

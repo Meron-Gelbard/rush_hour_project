@@ -19,9 +19,10 @@ while True:
             sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key == K.K_RETURN:
-                board.create_random_level(screen)
-                print(f"solved in {board.level.moves_2_exit} moves.")
-                print(f"Level is minial? {board.level.level_is_minimal()}")
+                while True:
+                    board.create_random_level(screen)
+                    print(f"solved in {board.level.moves_2_exit} moves.")
+                    print(f"Level is minial? {board.level.level_is_minimal()}")
             if event.key == K.K_p:
                 board.solution_player(screen)
             if event.key == K.K_l:
