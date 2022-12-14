@@ -196,7 +196,9 @@ class Board:
 
     def solution_player(self, screen):
         self.listening = False
-        self.red_is_out = False
+        if self.red_is_out:
+            self.previous_moves = [self.level.route[0]]
+            self.red_is_out = False
         try:
             for move in self.level.route:
                 for event in pygame.event.get():
@@ -208,7 +210,7 @@ class Board:
                     self.cars[i].car_rect.topleft = move[i]
                 screen.fill((0, 0, 0))
                 self.blit_cars(screen)
-                self.gui.blit_btns(screen)
+                self.gui.blit_btns(screen, self)
                 self.gui.blit_status(self.level.route.index(move) + 1, len(self.level.route), screen)
                 pygame.display.flip()
                 time.sleep(1)
@@ -219,7 +221,6 @@ class Board:
             for i in range(len(self.cars)):
                 self.cars[i].car_rect.topleft = self.level.route[0][i]
                 self.listening = True
-
         except AttributeError:
             pass
 
@@ -236,12 +237,22 @@ class Board:
     def load_level(self, screen):
         self.listening = True
         self.red_is_out = False
-        difficulty = int(self.gui.user_input(screen, 'Please enter difficulty level (1 - 3):'))
-        level = self.get_random_level(difficulty)
+        try:
+            difficulty = int(self.gui.user_input(screen, 'Please enter difficulty level (1 - 3):'))
+        except TypeError:
+            self.load_level(screen)
+            return
+        if 3 >= int(difficulty) >= 1:
+            level = self.get_random_level(difficulty)
+        else:
+            self.gui.user_input_txt = '#'
+            self.load_level(screen)
+            return
         if level == None:
             self.gui.btn_release(self.gui.btns[0])
             self.load_level(screen)
             return
+
         self.create_spaces()
         self.cars = []
         for i in range(1, len(level['cars'])):
@@ -263,9 +274,11 @@ class Board:
         self.level.moves_2_exit = level['moves_2_exit']
         self.level.route = level['solution_route']
         self.previous_moves = [self.level.route[0]]
+        self.gui.user_input_txt = ''
         self.gui.btn_release(self.gui.btns[0])
 
     def restart_level(self, screen):
+        self.listening = True
         self.red_is_out = False
         try:
             self.previous_moves = [self.level.route[0]]

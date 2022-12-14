@@ -8,7 +8,6 @@ pygame.init()
 
 screen_size = 800
 screen = pygame.display.set_mode((screen_size, screen_size))
-screen.get_rect().topleft = (100, 100)
 rush_hour_gui = RushHourGui(screen_size)
 board = Board(size=screen_size, level=4, rows_columns=6, gui=rush_hour_gui)
 clock = pygame.time.Clock()
@@ -36,7 +35,7 @@ while True:
                 rush_hour_gui.btn_release(btn)
     screen.fill((0, 0, 0))
     board.blit_cars(screen)
-    rush_hour_gui.blit_btns(screen)
+    rush_hour_gui.blit_btns(screen, board)
     if board.red_is_out:
         board.listening = False
         rush_hour_gui.message_text = "Red car is out! Great!"

@@ -11,7 +11,7 @@ class RushHourGui:
         label_rect = label.get_rect()
         btn = pygame.image.load('img/button.png')
         btn = pygame.transform.scale(btn, (label_rect.width + 10, label_rect.height + 10))
-        return [btn, label, text, None]
+        return [btn, label, text, btn.get_rect()]
 
     def __init__(self, screen_size):
         shift = 12
@@ -38,8 +38,13 @@ class RushHourGui:
         btn[0] = pygame.image.load('img/button.png')
         btn[0] = pygame.transform.scale(btn[0], size)
 
-    def blit_btns(self, screen):
-        for i in range(len(self.btn_info)):
+    def blit_btns(self, screen, board):
+        x = 0
+        if board.level == None:
+            self.message_text = "Welcome to the RushHour Game!"
+            self.render_message(screen)
+            x = 3
+        for i in range(len(self.btn_info) - x):
             btn_rect = self.btns[i][0].get_rect()
             btn_rect.topleft = self.btn_info[i]['pos']
             lbl_rect = self.btns[i][1].get_rect()
@@ -86,7 +91,6 @@ class RushHourGui:
 
     def user_input(self, screen, txt):
         self.message_text = txt
-        self.user_input_txt = ''
         finished = False
         while not finished:
             for event in pygame.event.get():
