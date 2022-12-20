@@ -21,10 +21,11 @@ class Level:
                     "length": car.length,
                     "block_width": car.width,
                     "horizontal": car.horizontal,
-                    "topleft_xy": car.car_rect.topleft
+                    "topleft_xy": car.car_rect.topleft,
+                    "grid_index": self.grid.index(car.car_rect.topleft)
                 }
             )
-        cars[1:].sort(key=lambda x: (x['topleft_xy']), reverse=True)
+        cars[1:].sort(key=lambda x: (x['grid_index']))
         level_save_params = {
             "moves_2_exit": self.moves_2_exit,
             "solution_route": self.route,
@@ -45,10 +46,9 @@ class Level:
                     break
         if save:
             saved_levels.append(level_save_params)
-            print('solvable level saved to json!')
             with open("solved_levels.json", "w") as file:
                 json.dump(saved_levels, file)
-
+            print('solvable level saved to json!')
 
     def get_free_places(self, cars):
         used_places = []
@@ -172,5 +172,4 @@ class Level:
             if not car_moved:
                 return False
         return True
-
 

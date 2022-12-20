@@ -21,12 +21,12 @@ class Board:
         self.cars = []
         self.full_grid = []
         self.free_places = []
-        self.car_rects = []
         self.red_car_xys = []
         self.density_factor = 0.3 + (0.1 * level)
         self.place_coverage = 0
         self.level = None
         self.previous_moves = []
+        self.red_is_out = False
         self.btn_funcs = {
             " Load Card ": self.load_level,
             " Create Card ": self.create_level,
@@ -34,7 +34,6 @@ class Board:
             " Undo ": self.undo_move,
             " Restart ": self.restart_level
         }
-        self.red_is_out = False
 
     def create_spaces(self):
         self.free_places = []
@@ -70,28 +69,25 @@ class Board:
             if i > len(car_colors[1:]):
                 i = (i % len(car_colors[1:]))+1
             self.cars.append(Car(3, self.block_size, car_colors[i], None))
-        self.car_rects = [car.car_rect for car in self.cars]
 
     def place_car_pos(self, car):
         placement = random.choice(self.free_places)
         car.car_rect.topleft = placement
         # next line makes a car_rects list without current car so that the check dosent check car to itself
-        self.car_rects = [car_u.car_rect for car_u in self.cars if car_u != car]
+        car_rects = [car_u.car_rect for car_u in self.cars if car_u != car]
         if car.car_rect.bottom > self.size:
-            passed = False
+            return False
         elif car.car_rect.right > self.size:
-            passed = False
-        elif car.car_rect.collidelist(self.car_rects) != -1:
-            passed = False
+            return False
+        elif car.car_rect.collidelist(car_rects) != -1:
+            return False
         elif car.car_rect.topleft[1] == self.cars[0].car_rect.topleft[1] and car.horizontal:
-            passed = False
+            return False
         else:
-            passed = True
-        return passed
+            return True
 
     def update_free_places(self):
         used_places = []
-        self.car_rects = [car.car_rect for car in self.cars]
         for car in self.cars:
             index = self.full_grid.index(car.car_rect.topleft)
             if car.horizontal:
@@ -108,8 +104,7 @@ class Board:
                         used_places.append(self.full_grid[i])
                     else:
                         break
-            new_free_places = [place for place in self.full_grid if place not in used_places]
-            self.free_places = new_free_places
+            self.free_places = [place for place in self.full_grid if place not in used_places]
 
     def create_random_level(self, screen):
         self.red_is_out = False
@@ -133,33 +128,32 @@ class Board:
         self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars,
                            screen_size=self.size)
 
-        positioning = []
+        level_position = []
         for i in range(len(self.level.first_position)):
-            positioning.append({'topleft': self.level.first_position[i],
-                                'car_length': self.cars[i].length,
-                               'horizontal': self.cars[i].horizontal})
-        positioning[1:].sort(key=lambda x: (x['topleft']), reverse=True)
-        level_pos_dict = {'position': positioning,
-                          'free_spaces': self.free_places}
+            level_position.append({'topleft_xy': self.level.first_position[i],
+                                   'grid_index': self.full_grid.index(self.level.first_position[i]),
+                                   'car_length': self.cars[i].length,
+                                   'horizontal': self.cars[i].horizontal})
+        level_position[1:].sort(key=lambda x: (x['grid_index']))
 
         with open("unsolvable.json", "r") as data:
             unsolvables = json.load(data)
 
-        if level_pos_dict not in unsolvables:
+        if level_position not in unsolvables:
             self.level.level_solver()
-        else:
-            print('unsolvable level. found in json!')
+        elif level_position in unsolvables:
+            print('unsolvable level. found in json!!!!!')
             self.create_random_level(screen)
             return
 
         if not self.level.solvable:
-            unsolvables.append(level_pos_dict)
+            unsolvables.append(level_position)
             with open("unsolvable.json", "w") as file:
                 json.dump(unsolvables, file)
             print('unsolvable level. added to json.')
             self.create_random_level(screen)
             return
-        elif self.level.solvable and self.level.moves_2_exit > 10:
+        elif self.level.solvable:
             self.level.save_level()
             self.previous_moves = [self.level.route[0]]
             return
@@ -191,7 +185,6 @@ class Board:
                             self.red_is_out = True
         if moved:
             self.previous_moves.append(previous_move)
-            self.car_rects = [car.car_rect for car in self.cars]
             self.update_free_places()
 
     def solution_player(self, screen):
@@ -219,7 +212,7 @@ class Board:
             pygame.display.flip()
             time.sleep(3)
             for i in range(len(self.cars)):
-                self.cars[i].car_rect.topleft = self.level.route[0][i]
+                self.cars[i].car_rect.topleft = self.previous_moves[-1][i]
                 self.listening = True
         except AttributeError:
             pass
@@ -242,7 +235,7 @@ class Board:
         except TypeError:
             self.load_level(screen)
             return
-        if 3 >= int(difficulty) >= 1:
+        if 3 >= int(difficulty) >= 0:
             level = self.get_random_level(difficulty)
         else:
             self.gui.user_input_txt = '#'

@@ -18,9 +18,10 @@ while True:
             sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key == K.K_RETURN:
-                board.create_random_level(screen)
-                print(f"solved in {board.level.moves_2_exit} moves.")
-                print(f"Level is minial? {board.level.level_is_minimal()}")
+                while True:
+                    board.create_random_level(screen)
+                    print(f"solved in {board.level.moves_2_exit} moves.")
+                    print(f"Level is minial? {board.level.level_is_minimal()}")
         if event.type == pygame.MOUSEBUTTONDOWN:
             button_press = False
             for btn in rush_hour_gui.btns:
