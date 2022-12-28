@@ -70,8 +70,7 @@ class Board:
                 i = (i % len(car_colors[1:]))+1
             self.cars.append(Car(3, self.block_size, car_colors[i], None))
 
-    def place_car_pos(self, car):
-        placement = random.choice(self.free_places)
+    def place_car_pos(self, car, placement):
         car.car_rect.topleft = placement
         # next line makes a car_rects list without current car so that the check dosent check car to itself
         car_rects = [car_u.car_rect for car_u in self.cars if car_u != car]
@@ -117,7 +116,7 @@ class Board:
         for car in self.cars[1:]:
             attempt_count = 0
             self.update_free_places()
-            while not self.place_car_pos(car):
+            while not self.place_car_pos(car, random.choice(self.free_places)):
                 attempt_count += 1
                 if attempt_count > 1000000:
                     attempt_count = 0
@@ -157,10 +156,10 @@ class Board:
             self.level.save_level()
             self.previous_moves = [self.level.route[0]]
             return
-        else:
-            print('less than 10 moves...')
-            self.create_random_level(screen)
-            return
+        # else:
+        #     print('less than 10 moves...')
+        #     self.create_random_level(screen)
+        #     return
 
     def blit_cars(self, screen):
         for car in self.cars:
@@ -289,7 +288,26 @@ class Board:
         self.update_free_places()
 
     def create_level(self, screen):
-        pass
-
+        self.create_spaces()
+        length = 2
+        horizontal = False
+        cars = [Car(2, self.block_size, 'red', True)]
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if not horizontal:
+                    for i in range(len(self.full_grid)):
+                        if self.full_grid[i][1] < pos[1] < self.full_grid[i+1][1]:
+                            pos = self.full_grid[i]
+                    new_car = Car(length, self.block_size, random.choice(car_colors[1:]), horizontal)
+                    if self.place_car_pos(new_car, pos):
+                        cars.append(new_car)
+                elif horizontal:
+                    for i in range(len(self.full_grid)):
+                        if self.full_grid[i][0] < pos[0] < self.full_grid[i+self.rows_columns_count][0]:
+                            pos = self.full_grid[i]
+                    new_car = Car(length, self.block_size, random.choice(car_colors[1:]), horizontal)
+                    if self.place_car_pos(new_car, pos):
+                        cars.append(new_car)
 
 

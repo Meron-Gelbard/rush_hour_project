@@ -72,7 +72,7 @@ class Level:
         free_places = [place for place in self.grid if place not in used_places]
         return free_places
 
-    def check_possible_moves(self, current_pos):
+    def get_possible_moves(self, current_pos):
         def car_blocking_red(car, red_car):
             if car.car_rect.bottom > red_car.car_rect.top >= car.car_rect.top:
                 if car.car_rect.left >= red_car.car_rect.right:
@@ -136,7 +136,7 @@ class Level:
                         self.solvable = True
                         break
                 else:
-                    possible_moves = self.check_possible_moves(self.moving_cars)
+                    possible_moves = self.get_possible_moves(self.moving_cars)
                     moves_dictionary[visited.index(current_pos)] = [move for move in possible_moves]
                     for move in possible_moves:
                         if move not in moves_queue and move not in visited:

@@ -48,8 +48,6 @@ while True:
     pygame.display.flip()
 
 
-# TODO: implement yield function in recurssion functions. good for restarting function without variables reset!! (????)
-# TODO: implement map building by level argument. calculate level by number of moves required.
 # TODO: try implementing recurssion error handling instead of attempt counts for production of more complex maps.??
 # TODO: improve GUI: "please wait" messages, grid background, exit sign, board boarder, level request input, undo move button,
 # move counter display, level reset button. solution player button, work on car images.
