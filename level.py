@@ -9,7 +9,6 @@ class Level:
         self.board_edge = screen_size
         self.rows_columns = rows_columns
         self.solvable = False
-        self.red_car_width = first_position_cars[0].width
         self.moves_2_exit = 0
         self.route = None
 
@@ -68,7 +67,6 @@ class Level:
                         used_places.append(self.grid[i])
                     else:
                         break
-
         free_places = [place for place in self.grid if place not in used_places]
         return free_places
 
@@ -102,7 +100,7 @@ class Level:
                     possible_moves.append([car.car_rect.topleft for car in current_pos])
                     current_pos[i].move('left', self.grid, self.get_free_places(current_pos), self.rows_columns)
 
-        return possible_moves
+        return iter(possible_moves)
 
     def level_solver(self):
         def red_path_cleared():

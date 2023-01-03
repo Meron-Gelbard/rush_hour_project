@@ -6,9 +6,9 @@ from car import Car
 from level import Level
 import json
 import time
-from threading import Thread
+import itertools
 
-car_colors = ['red', 'blue', 'cyan', 'pink', 'orange', 'green']
+car_colors = itertools.cycle(['blue', 'cyan', 'pink', 'orange', 'green'])
 
 class Board:
     def __init__(self, size, level, rows_columns, gui):
@@ -39,10 +39,8 @@ class Board:
         self.free_places = []
         self.full_grid = []
         xy_values = [i for i in range(0, self.size-self.block_size+1, self.block_size)]
-        for x in range(0, len(xy_values)):
-            for y in range(0, len(xy_values)):
-                self.full_grid.append((xy_values[x], xy_values[y]))
-                self.free_places.append((xy_values[x], xy_values[y]))
+        self.full_grid = list(itertools.product(xy_values, repeat=2))
+        self.free_places = self.full_grid
         self.red_car_xys = [place for place in self.full_grid
                             if place[1] == self.full_grid[self.rows_columns_count // 2][1]
                             and place[0] < self.size - self.block_size*3]
@@ -60,15 +58,11 @@ class Board:
         twos = car_count.count(2)
         threes = car_count.count(3)
 
-        self.cars.append(Car(2, self.block_size, car_colors[0], True))
+        self.cars.append(Car(2, self.block_size, 'red', True))
         for i in range(1, twos+1):
-            if i > len(car_colors[1:]):
-                i = (i % len(car_colors[1:]))+1
-            self.cars.append(Car(2, self.block_size, car_colors[i], None))
+            self.cars.append(Car(2, self.block_size, next(car_colors), None))
         for i in range(1, threes+1):
-            if i > len(car_colors[1:]):
-                i = (i % len(car_colors[1:]))+1
-            self.cars.append(Car(3, self.block_size, car_colors[i], None))
+            self.cars.append(Car(3, self.block_size, next(car_colors), None))
 
     def place_car_pos(self, car, placement):
         car.car_rect.topleft = placement
@@ -156,10 +150,6 @@ class Board:
             self.level.save_level()
             self.previous_moves = [self.level.route[0]]
             return
-        # else:
-        #     print('less than 10 moves...')
-        #     self.create_random_level(screen)
-        #     return
 
     def blit_cars(self, screen):
         for car in self.cars:
@@ -250,11 +240,11 @@ class Board:
         for i in range(1, len(level['cars'])):
             self.cars.append(Car(block_width=level['cars'][i]['block_width'],
                                  length=level['cars'][i]['length'],
-                                 color=random.choice(car_colors[1:]),
+                                 color=next(car_colors),
                                  horizontal=level['cars'][i]['horizontal']))
         self.cars.insert(0, Car(block_width=level['cars'][0]['block_width'],
                                 length=level['cars'][0]['length'],
-                                color=car_colors[0],
+                                color='red',
                                 horizontal=level['cars'][0]['horizontal']))
         self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid, first_position_cars=self.cars,
                            screen_size=self.size)
@@ -299,14 +289,14 @@ class Board:
                     for i in range(len(self.full_grid)):
                         if self.full_grid[i][1] < pos[1] < self.full_grid[i+1][1]:
                             pos = self.full_grid[i]
-                    new_car = Car(length, self.block_size, random.choice(car_colors[1:]), horizontal)
+                    new_car = Car(length, self.block_size, next(car_colors), horizontal)
                     if self.place_car_pos(new_car, pos):
                         cars.append(new_car)
                 elif horizontal:
                     for i in range(len(self.full_grid)):
                         if self.full_grid[i][0] < pos[0] < self.full_grid[i+self.rows_columns_count][0]:
                             pos = self.full_grid[i]
-                    new_car = Car(length, self.block_size, random.choice(car_colors[1:]), horizontal)
+                    new_car = Car(length, self.block_size, next(car_colors), horizontal)
                     if self.place_car_pos(new_car, pos):
                         cars.append(new_car)
 
