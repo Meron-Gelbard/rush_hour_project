@@ -18,10 +18,9 @@ while True:
             sys.exit()
         if event.type == pygame.KEYDOWN:
             if event.key == K.K_RETURN:
-                while True:
-                    board.create_random_level(screen)
-                    print(f"solved in {board.level.moves_2_exit} moves.")
-                    print(f"Level is minial? {board.level.level_is_minimal()}")
+                board.create_random_level(screen)
+                print(f"solved in {board.level.moves_2_exit} moves.")
+                print(f"Level is minial? {board.level.level_is_minimal()}")
         if event.type == pygame.MOUSEBUTTONDOWN:
             button_press = False
             for btn in rush_hour_gui.btns:
@@ -46,8 +45,3 @@ while True:
     except AttributeError:
         pass
     pygame.display.flip()
-
-
-# TODO: try implementing recurssion error handling instead of attempt counts for production of more complex maps.??
-# TODO: improve GUI: "please wait" messages, grid background, exit sign, board boarder, level request input, undo move button,
-# move counter display, level reset button. solution player button, work on car images.

@@ -7,6 +7,7 @@ from level import Level
 import json
 import time
 import itertools
+import pygame.locals as K
 
 car_colors = itertools.cycle(['blue', 'cyan', 'pink', 'orange', 'green'])
 
@@ -281,23 +282,39 @@ class Board:
         self.create_spaces()
         length = 2
         horizontal = False
-        cars = [Car(2, self.block_size, 'red', True)]
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                if not horizontal:
-                    for i in range(len(self.full_grid)):
-                        if self.full_grid[i][1] < pos[1] < self.full_grid[i+1][1]:
-                            pos = self.full_grid[i]
-                    new_car = Car(length, self.block_size, next(car_colors), horizontal)
-                    if self.place_car_pos(new_car, pos):
-                        cars.append(new_car)
-                elif horizontal:
-                    for i in range(len(self.full_grid)):
-                        if self.full_grid[i][0] < pos[0] < self.full_grid[i+self.rows_columns_count][0]:
-                            pos = self.full_grid[i]
-                    new_car = Car(length, self.block_size, next(car_colors), horizontal)
-                    if self.place_car_pos(new_car, pos):
-                        cars.append(new_car)
+        self.cars = []
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == K.K_RETURN:
+                        self.update_free_places()
+                        self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid,
+                                           first_position_cars=self.cars,
+                                           screen_size=self.size)
+                        self.level.level_solver()
+                        print(self.level.solvable)
+                        print(self.level.moves_2_exit)
+                        print(len(self.level.route))
+                        return
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    for block in self.full_grid:
+                        if pos[0] - block[0] < self.block_size and \
+                                pos[1] - block[1] < self.block_size:
+                            pos = block
+                            break
+                    if not self.cars:
+                        self.cars.append(Car(2, self.block_size, 'red', True))
+                        self.place_car_pos(self.cars[0], pos)
+                        self.blit_cars(screen)
+                        pygame.display.flip()
+                    else:
+                        new_car = Car(length, self.block_size, next(car_colors), horizontal)
+                        if self.place_car_pos(new_car, pos):
+                            self.cars.append(new_car)
+                            print([car.car_rect.topleft for car in self.cars])
+                            self.blit_cars(screen)
+                            pygame.display.flip()
+
 
 
