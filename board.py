@@ -279,6 +279,7 @@ class Board:
         self.update_free_places()
 
     def create_level(self, screen):
+        # still in development...
         self.create_spaces()
         length = 2
         horizontal = False
