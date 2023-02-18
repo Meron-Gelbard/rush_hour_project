@@ -99,11 +99,9 @@ class Level:
                 if current_pos[i].move('right', self.grid, self.get_free_places(current_pos), self.rows_columns):
                     possible_moves.append([car.car_rect.topleft for car in current_pos])
                     current_pos[i].move('left', self.grid, self.get_free_places(current_pos), self.rows_columns)
-
-        return iter(possible_moves)
+        return possible_moves
 
     def level_solver(self):
-        print("started solver")
         def red_path_cleared():
             red_path = []
             for space in self.grid:
@@ -161,7 +159,6 @@ class Level:
                 self.moving_cars[i].car_rect.topleft = self.first_position[i]
             self.route.reverse()
             self.moves_2_exit = len(self.route) - 1
-        print("finished solver")
 
     def level_is_minimal(self):
         for car in range(1, len(self.first_position)):

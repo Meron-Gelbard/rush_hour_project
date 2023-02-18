@@ -222,11 +222,11 @@ class Board:
         self.listening = True
         self.red_is_out = False
         try:
-            difficulty = int(self.gui.user_input(screen, 'Please enter difficulty level (1 - 3):'))
+            difficulty = int(self.gui.user_input(screen, 'Please enter difficulty level (1 - 5):'))
         except TypeError:
             self.load_level(screen)
             return
-        if 3 >= int(difficulty) >= 0:
+        if 5 >= int(difficulty) >= 0:
             level = self.get_random_level(difficulty)
         else:
             self.gui.user_input_txt = '#'
@@ -289,6 +289,8 @@ class Board:
         self.cars = []
         while True:
             for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
                 if event.type == pygame.KEYDOWN:
                     if event.key == K.K_f:
                         horizontal = not horizontal
@@ -297,14 +299,12 @@ class Board:
                     if event.key == K.K_3:
                         length = 3
                     if event.key == K.K_RETURN:
-                        self.update_free_places()
                         self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid,
                                            first_position_cars=self.cars,
                                            screen_size=self.size)
                         self.level.level_solver()
-                        print(self.level.solvable)
-                        print(self.level.moves_2_exit)
-                        print(len(self.level.route))
+                        self.previous_moves.append(self.level.first_position)
+                        self.level.save_level()
                         return
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
@@ -317,7 +317,7 @@ class Board:
                         if not self.cars:
                             if pos[0] > self.full_grid[-7][0]:
                                 pos = (self.full_grid[-7][0], pos[1])
-                            pos = (pos[0], self.full_grid[self.rows_columns_count // 2][1])
+                            pos = (pos[0], self.full_grid[(self.rows_columns_count // 2)-1][1])
                             self.cars.append(Car(2, self.block_size, 'red', True))
                             self.place_car_pos(self.cars[0], pos)
                             self.blit_cars(screen)
