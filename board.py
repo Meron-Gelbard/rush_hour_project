@@ -176,6 +176,7 @@ class Board:
         if moved:
             self.previous_moves.append(previous_move)
             self.update_free_places()
+            return True
 
     def solution_player(self, screen):
         self.listening = False
@@ -280,6 +281,8 @@ class Board:
 
     def create_level(self, screen):
         # still in development...
+        screen.fill((0, 0, 0))
+        pygame.display.flip()
         self.create_spaces()
         length = 2
         horizontal = False
@@ -287,6 +290,12 @@ class Board:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
+                    if event.key == K.K_f:
+                        horizontal = not horizontal
+                    if event.key == K.K_2:
+                        length = 2
+                    if event.key == K.K_3:
+                        length = 3
                     if event.key == K.K_RETURN:
                         self.update_free_places()
                         self.level = Level(rows_columns=self.rows_columns_count, grid=self.full_grid,
@@ -299,23 +308,29 @@ class Board:
                         return
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     pos = pygame.mouse.get_pos()
-                    for block in self.full_grid:
-                        if pos[0] - block[0] < self.block_size and \
-                                pos[1] - block[1] < self.block_size:
-                            pos = block
-                            break
-                    if not self.cars:
-                        self.cars.append(Car(2, self.block_size, 'red', True))
-                        self.place_car_pos(self.cars[0], pos)
-                        self.blit_cars(screen)
-                        pygame.display.flip()
-                    else:
-                        new_car = Car(length, self.block_size, next(car_colors), horizontal)
-                        if self.place_car_pos(new_car, pos):
-                            self.cars.append(new_car)
-                            print([car.car_rect.topleft for car in self.cars])
+                    if not self.car_move_click(pos):
+                        for block in self.full_grid:
+                            if pos[0] - block[0] < self.block_size and \
+                                    pos[1] - block[1] < self.block_size:
+                                pos = block
+                                break
+                        if not self.cars:
+                            if pos[0] > self.full_grid[-7][0]:
+                                pos = (self.full_grid[-7][0], pos[1])
+                            pos = (pos[0], self.full_grid[self.rows_columns_count // 2][1])
+                            self.cars.append(Car(2, self.block_size, 'red', True))
+                            self.place_car_pos(self.cars[0], pos)
                             self.blit_cars(screen)
                             pygame.display.flip()
-
+                        else:
+                            new_car = Car(length, self.block_size, next(car_colors), horizontal)
+                            if self.place_car_pos(new_car, pos):
+                                self.cars.append(new_car)
+                                self.blit_cars(screen)
+                                pygame.display.flip()
+                    else:
+                        screen.fill((0, 0, 0))
+                        self.blit_cars(screen)
+                        pygame.display.flip()
 
 
