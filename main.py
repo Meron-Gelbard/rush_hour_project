@@ -38,8 +38,7 @@ while True:
     rush_hour_gui.blit_btns(screen, board)
     if board.red_is_out:
         board.listening = False
-        rush_hour_gui.message_text = "Red car is out! Great!"
-        rush_hour_gui.render_message(screen)
+        rush_hour_gui.render_message(screen, "Red car is out! Great!", "center")
     try:
         rush_hour_gui.blit_status(moves_count=len(board.previous_moves), min_moves=len(board.level.route), screen=screen)
     except AttributeError:

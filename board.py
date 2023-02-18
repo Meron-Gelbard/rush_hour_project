@@ -222,7 +222,7 @@ class Board:
         self.listening = True
         self.red_is_out = False
         try:
-            difficulty = int(self.gui.user_input(screen, 'Please enter difficulty level (1 - 5):'))
+            difficulty = int(self.gui.user_input(screen))
         except TypeError:
             self.load_level(screen)
             return
@@ -288,6 +288,10 @@ class Board:
         horizontal = False
         self.cars = []
         while True:
+            if horizontal:
+                gui_txt = f"Horizontal | Size: {length} ('f'/'2'/'3')"
+            else:
+                gui_txt = f"Vertical | Size: {length} ('f'/'2'/'3')"
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
@@ -320,17 +324,13 @@ class Board:
                             pos = (pos[0], self.full_grid[(self.rows_columns_count // 2)-1][1])
                             self.cars.append(Car(2, self.block_size, 'red', True))
                             self.place_car_pos(self.cars[0], pos)
-                            self.blit_cars(screen)
-                            pygame.display.flip()
                         else:
                             new_car = Car(length, self.block_size, next(car_colors), horizontal)
                             if self.place_car_pos(new_car, pos):
                                 self.cars.append(new_car)
-                                self.blit_cars(screen)
-                                pygame.display.flip()
-                    else:
-                        screen.fill((0, 0, 0))
-                        self.blit_cars(screen)
-                        pygame.display.flip()
+            screen.fill((0, 0, 0))
+            self.gui.render_message(screen, gui_txt, "bottom")
+            self.blit_cars(screen)
+            pygame.display.flip()
 
 
