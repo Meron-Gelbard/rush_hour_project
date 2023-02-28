@@ -171,4 +171,3 @@ class Card:
             if not car_moved:
                 return False
         return True
-

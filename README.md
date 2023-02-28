@@ -20,3 +20,4 @@ Have Fun!
 
 Meron Gelbard
 
+* currently running with JSON files to store game cards. Hopefuly will make use of a Database in near the future.

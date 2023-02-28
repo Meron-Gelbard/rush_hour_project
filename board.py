@@ -16,6 +16,7 @@ class Board:
     """ Main game class holding all main game functions,
     objects and attributes
     """
+
     def __init__(self, size, level, rows_columns, gui):
         self.GUI = gui
         self.ROWS_COLUMNS_COUNT = rows_columns
@@ -66,7 +67,7 @@ class Board:
          """
 
         self.cars = []
-        counter = self.place_coverage - 2                            # take off red car coverage
+        counter = self.place_coverage - 2  # take off red car coverage
         car_count = []
 
         # randomly divides coverage to 2's and 3's
@@ -77,11 +78,11 @@ class Board:
         twos = car_count.count(2)
         threes = car_count.count(3)
 
-        self.cars.append(Car(2, self.BLOCK_SIZE, 'red', True))        # add red car at random position
+        self.cars.append(Car(2, self.BLOCK_SIZE, 'red', True))  # add red car at random position
         # generates cars according to 2's and 3's counters
-        for i in range(1, twos+1):
+        for i in range(1, twos + 1):
             self.cars.append(Car(2, self.BLOCK_SIZE, next(car_colors), None))
-        for i in range(1, threes+1):
+        for i in range(1, threes + 1):
             self.cars.append(Car(3, self.BLOCK_SIZE, next(car_colors), None))
 
     def place_car_pos(self, car, placement):
@@ -118,14 +119,14 @@ class Board:
             if car.horizontal:
                 for i in range(0, car.length):
                     i = index + self.ROWS_COLUMNS_COUNT * i
-                    if i <= len(self.FULL_GRID)-1:
+                    if i <= len(self.FULL_GRID) - 1:
                         used_places.append(self.FULL_GRID[i])
                     else:
                         break
             elif not car.horizontal:
                 for i in range(0, car.length):
                     i = index + i
-                    if i <= len(self.FULL_GRID)-1:
+                    if i <= len(self.FULL_GRID) - 1:
                         used_places.append(self.FULL_GRID[i])
                     else:
                         break
@@ -150,7 +151,7 @@ class Board:
                 attempt_count += 1
                 if attempt_count > 1000000:
                     print('failed to build')
-                    self.create_random_card(screen)         # if failed to position restart function
+                    self.create_random_card(screen)  # if failed to position restart function
                     return
         self.update_free_places()
 
@@ -175,7 +176,7 @@ class Board:
             self.card.card_solver()
         elif level_position in unsolvables:
             print('unsolvable level. found in json!')
-            self.create_random_card(screen)         # if found in unsolvables restart function
+            self.create_random_card(screen)  # if found in unsolvables restart function
             return
 
         if not self.card.solvable:
@@ -263,7 +264,7 @@ class Board:
             levels = json.load(levels_db)
         try:
             random_level = random.choice([level for level in levels
-                                          if difficulty <= int(level["moves_2_exit"]) < difficulty+10])
+                                          if difficulty <= int(level["moves_2_exit"]) < difficulty + 10])
         except Exception:
             return None
         return random_level
@@ -386,4 +387,3 @@ class Board:
             self.GUI.render_msg(screen, gui_txt, "bottom")
             self.blit_cars(screen)
             pygame.display.flip()
-

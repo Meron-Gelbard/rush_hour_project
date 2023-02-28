@@ -3,6 +3,7 @@ import pygame
 import pygame.locals as K
 import sys
 
+
 class RushHourGui:
 
     def create_btn(self, text, height):
@@ -17,11 +18,12 @@ class RushHourGui:
         shift = 12
         self.button_height = 25
         self.btn_info = [{"pos": (shift, shift), "text": ' Load Card '},
-                    {"pos": (screen_size - shift*12, shift), "text": ' Create Card '},
-                    {"pos": (screen_size - shift*13, screen_size - shift - self.button_height), "text": ' Play Solution '},
-                    {"pos": (shift, screen_size - shift - self.button_height), "text": ' Undo '},
-                    {"pos": (screen_size / 2.3, screen_size - shift - self.button_height*3), "text": ' Restart '}
-                    ]
+                         {"pos": (screen_size - shift * 12, shift), "text": ' Create Card '},
+                         {"pos": (screen_size - shift * 13, screen_size - shift - self.button_height),
+                          "text": ' Play Solution '},
+                         {"pos": (shift, screen_size - shift - self.button_height), "text": ' Undo '},
+                         {"pos": (screen_size / 2.3, screen_size - shift - self.button_height * 3), "text": ' Restart '}
+                         ]
 
         self.btns = [self.create_btn(btn['text'], self.button_height) for btn in self.btn_info]
         self.flash_message = pygame.font.SysFont('Ariel', 40, bold=True)
@@ -84,7 +86,7 @@ class RushHourGui:
         label = self.flash_message.render(self.user_input_txt, False, (255, 255, 255))
         label_rect = label.get_rect()
         size = screen.get_size()[0]
-        label_rect.center = (size / 2, size / 2 + label_rect.height*1.5)
+        label_rect.center = (size / 2, size / 2 + label_rect.height * 1.5)
         bg_size = (label.get_width() + 20, label.get_height() + 20)
         bg = pygame.Surface(bg_size)
         bg.fill((0, 0, 0))
