@@ -1,7 +1,8 @@
 from _collections import deque
 import json
 
-class Level:
+
+class Card:
     def __init__(self, grid, rows_columns, first_position_cars, screen_size):
         self.moving_cars = first_position_cars
         self.first_position = [car.car_rect.topleft for car in self.moving_cars]
@@ -12,7 +13,7 @@ class Level:
         self.moves_2_exit = 0
         self.route = None
 
-    def save_level(self):
+    def save_card(self):
         cars = []
         for car in self.moving_cars:
             cars.append(
@@ -35,7 +36,7 @@ class Level:
             "minimal": self.level_is_minimal()
         }
 
-        with open("solved_levels.json", "r") as levels_data:
+        with open("solved_cards.json", "r") as levels_data:
             save = True
             saved_levels = json.load(levels_data)
             for level in saved_levels:
@@ -45,7 +46,7 @@ class Level:
                     break
         if save:
             saved_levels.append(level_save_params)
-            with open("solved_levels.json", "w") as file:
+            with open("solved_cards.json", "w") as file:
                 json.dump(saved_levels, file)
             print('solvable level saved to json!')
 
@@ -101,11 +102,12 @@ class Level:
                     current_pos[i].move('left', self.grid, self.get_free_places(current_pos), self.rows_columns)
         return possible_moves
 
-    def level_solver(self):
+    def card_solver(self):
         def red_path_cleared():
             red_path = []
             for space in self.grid:
-                if space[1] == self.moving_cars[0].car_rect.topleft[1] and space[0] >= self.moving_cars[0].car_rect.right:
+                if space[1] == self.moving_cars[0].car_rect.topleft[1] \
+                        and space[0] >= self.moving_cars[0].car_rect.right:
                     red_path.append(space)
             for space in red_path:
                 if space not in self.get_free_places(self.moving_cars):

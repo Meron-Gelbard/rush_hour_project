@@ -40,8 +40,8 @@ class RushHourGui:
 
     def blit_btns(self, screen, board):
         x = 0
-        if board.level == None:
-            self.render_message(screen, "Welcome to the RushHour Game!", "center")
+        if board.card == None:
+            self.render_msg(screen, "Welcome to the RushHour Game!", "center")
             x = 3
         for i in range(len(self.btn_info) - x):
             btn_rect = self.btns[i][0].get_rect()
@@ -64,7 +64,7 @@ class RushHourGui:
         screen.blit(bg, bg_xy)
         screen.blit(label, label_rect)
 
-    def render_message(self, screen, msg_txt, position):
+    def render_msg(self, screen, msg_txt, position):
         self.message_text = msg_txt
         msg_pos = {'center': (screen.get_size()[0] / 2, screen.get_size()[0] / 2),
                    'bottom': (screen.get_size()[0] / 2, screen.get_size()[0] - 30)}
@@ -112,6 +112,6 @@ class RushHourGui:
                 if event.type == pygame.QUIT:
                     sys.exit()
             screen.fill((0, 0, 0))
-            self.render_message(screen, 'Please enter difficulty level (1 - 5):', 'center')
+            self.render_msg(screen, 'Please enter difficulty level (1 - 5):', 'center')
             self.render_user_input(screen)
             pygame.display.flip()
